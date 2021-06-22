@@ -77,7 +77,7 @@ class CommonUtils():
     @staticmethod
     def AddCommonArgs(argparser):
         argparser.add_argument('-o', '--output_folder', action='store', default=CommonUtils.output_folder, help='The folder to store the package in')
-        argparser.add_argument('--search_path', type=str, required=False, action='store', help='Folder to search for package host list files')
+        argparser.add_argument('--search_path', type=str, required=True, action='store', help='Folder to search for package host list files')
         argparser.epilog = 'Note: You can set environment variables in the form\nPACKAGE_<paramname>\n to pass from env instead of command line'
 
     @staticmethod

@@ -1,12 +1,7 @@
 #
-# All or portions of this file Copyright (c) Amazon.com, Inc. or its affiliates or
-# its licensors.
-#
-# For complete copyright and license terms please see the LICENSE at the root of this
-# distribution (the "License"). All use of this software is governed by the License,
-# or, if provided, by the license below or the license accompanying this file. Do not
-# remove or modify any license notices. This file is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# Copyright (c) Contributors to the Open 3D Engine Project
+# 
+#  SPDX-License-Identifier: Apache-2.0 OR MIT
 #
 from common import CommonUtils
 import tempfile
@@ -27,7 +22,7 @@ def test_FullyValidatePackage_foldereExists_no_package_returns_false():
 
 def test_FullyValidatePackage_package_empty_returns_false():
     with tempfile.TemporaryDirectory() as dir:
-        with tarfile.open(os.path.join(dir, 'mypackage' + CommonUtils.package_extension), mode="w:xz"):
+        with tarfile.open(os.path.join(dir, 'emptypackage' + CommonUtils.package_extension), mode="w:xz"):
             pass
         assert not CommonUtils.FullyValidatePackage(dir, "emptypackage") 
     
@@ -68,23 +63,20 @@ def test_FullyValidatePackage_bogus_required_parts_returns_false():
                 tf.add(element[0])
         assert not CommonUtils.FullyValidatePackage(dir, "mypackage")
 
-def test_TestData():
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    test_cases = [
-        # the following are all valid packages but have something wrong with their actual content
-        # as opposed to the prior tests where something was structurally wrong:
-        ("extra_content_file", False), # package has a bad path to license file
+@pytest.mark.parametrize("folderName,expectedResult", [
+        # the tuple is (folder name, expected outcome of FullyValidatePackage)
+        ("extra_content_file", False), # package contains an unexpected file
         ("missing_content_file", False), # descriptor is missing a required field
         ("missing_content_hash", False), # a file inside the package does not match
-        ("missing_license_file", False), # package contains an unexpected file
+        ("missing_license_file", False), # package has a bad path to license file
         ("minimal_good", True), # package is good and has absolute bare minimum
         ("normal_package", True), # package is completely normal
         ("package_symlink", True), # package has symlinks in it
         ("invalid_spdx_license", False), # package is correct in every way but invalid license name
         ("custom_license", True), # package is correct in every way but has 'custom' as license
-    ]
+    ])
+def test_package_contents(folderName, expectedResult):
+    script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    for case in test_cases:
-        package_folder = os.path.join(script_dir, 'test_packages', case[0])
-        assert CommonUtils.FullyValidatePackage(package_folder, 'package') == case[1]
-        
+    package_folder = os.path.join(script_dir, 'test_packages', folderName)
+    assert CommonUtils.FullyValidatePackage(package_folder, 'package') == expectedResult

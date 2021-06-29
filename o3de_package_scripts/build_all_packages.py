@@ -1,13 +1,10 @@
 #
-# All or portions of this file Copyright (c) Amazon.com, Inc. or its affiliates or
-# its licensors.
+# Copyright (c) Contributors to the Open 3D Engine Project
+# 
+#  SPDX-License-Identifier: Apache-2.0 OR MIT
 #
-# For complete copyright and license terms please see the LICENSE at the root of this
-# distribution (the "License"). All use of this software is governed by the License,
-# or, if provided, by the license below or the license accompanying this file. Do not
-# remove or modify any license notices. This file is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #
+ 
 import os
 import subprocess
 import argparse
@@ -27,6 +24,10 @@ def BuildPackages(output_folder, search_paths, server_urls, aws_profile_name):
     
     data = CommonUtils.LoadPackageLists(search_paths)
     CommonUtils.PrintPackageList(data)
+
+    failed_source_packages = []
+    failed_folder_packages = []
+    exitCode = 0
 
     source_packages = data['build_from_source']
     folder_packages = data['build_from_folder']
@@ -49,23 +50,34 @@ def BuildPackages(output_folder, search_paths, server_urls, aws_profile_name):
         # fetch and then execute the build script
         if not os.path.exists(build_script_path):
             print(f"Error: build script at {build_script_path} for package {package_name} not found!")
+            failed_source_packages.append(package_name)
+            exitCode = 1
             continue
 
         if package_name not in folder_packages:
             print(f"Error: {package_name} specified in the source packages, but not the folder packages!")
+            failed_source_packages.append(package_name)
+            exitCode = 1
             continue
 
         print(f"Calling build script: \"{build_script_cmd}\"...")
         cmd = [sys.executable, '-s'] + build_script_cmd.split(' ')
         output = subprocess.run(cmd, cwd=build_script_folder)
         if output.returncode != 0:
-            raise NameError(f"Package {package_name} failed to build from source, it is not safe to continue.")
-
+            print(f"Build script for package {package_name} failed, will not attempt to create package for it")
+            failed_source_packages.append(package_name)
+            exitCode = 1
+            
     print("Building packages from folders...")
     for package_name in folder_packages.keys():
+        if package_name in failed_source_packages:
+            print(f"    Package: '{package_name}' skipped since it failed to build.")
+            continue
+
         if package_name in packages_already_found_on_server:
-            print(f"    Package: '{package_name}' skipped since its already uploaded")
-            continue # already skipped it.
+            print(f"    Package: '{package_name}' skipped since its already uploaded.")
+            continue
+
         print(f"    Package: '{package_name}'...")
         found = FindPackageUtils.FindPackageOnServer(package_name, server_urls, aws_profile_name)
         if found:
@@ -78,7 +90,9 @@ def BuildPackages(output_folder, search_paths, server_urls, aws_profile_name):
             # over here we'd sync the folder, if necessary, using p4 or git or whatever.
             # for now we assume its all fetched.
             if not os.path.exists(package_info_file_path):
-                print(f"Package info file not found: {package_info_file_path} ... skipping")
+                print(f"Error: Package info file not found: {package_info_file_path} ... skipping")
+                failed_folder_packages.append(package_name)
+                exitCode = 1
                 continue
             try:
                 data = CommonUtils.ReadPackageInfo(package_info_file_path)
@@ -86,11 +100,34 @@ def BuildPackages(output_folder, search_paths, server_urls, aws_profile_name):
                     raise KeyError(f"Package {package_name} has a PackageInfo.json that claims its {data['PackageName']} instead.")
             
                 # build it:
-                PackageUpFolder(package_abspath, output_folder)
+                if not PackageUpFolder(package_abspath, output_folder):
+                    print(f"Error:  {package_name} failed to package up correctly.")
+                    exitCode = 1
+                    failed_folder_packages.append(package_name)
+
             except Exception as e:
                 print(f"Error:  {package_name} {e}") 
+                exitCode = 1
+                failed_folder_packages.append(package_name)
                 traceback.print_exc()
                 continue
+
+    if packages_already_found_on_server:
+        print("The following packages were skipped as they were already on the server(s)")
+        for package_name in packages_already_found_on_server:
+            print(f"   [SKIPPED] - {package_name}")
+    
+    if failed_source_packages:
+        print("WARNING: These packages failed to build from source:")
+        for package_name in failed_source_packages:
+            print(f"   [FAILED] - {package_name}")
+
+    if failed_folder_packages:
+        print("WARNING: These packages failed to build from folder:")
+        for package_name in failed_folder_packages:
+            print(f"   [FAILED] - {package_name}")
+    
+    return exitCode
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Builds any missing packages into the packages folder, based on package list json files.')
@@ -107,5 +144,5 @@ if __name__ == "__main__":
         print("Either set LY_SERVER_URLS (semi colon list) or specify it in the command line in --server_urls (semi colon list)")
         sys.exit(1)
 
-    BuildPackages(args.output_folder, args.search_path, args.server_urls, args.profile_name)
-    sys.exit(0)
+    exitCode = BuildPackages(args.output_folder, args.search_path, args.server_urls, args.profile_name)
+    sys.exit(exitCode)

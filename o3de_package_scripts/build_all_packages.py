@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     if not args.server_urls:
         print("You must specify server urls to check in order to use this script")
-        print("Either set LY_SERVER_URLS (semi colon list) or specify it in the command line in --server_urls (semi colon list)")
+        print("Either set LY_PACKAGE_SERVER_URLS (semi colon list) or specify it in the command line in --server_urls (semi colon list)")
         sys.exit(1)
 
     exitCode = BuildPackages(args.output_folder, args.search_path, args.server_urls, args.profile_name)

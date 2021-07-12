@@ -250,7 +250,7 @@ Note that you can specify parameters after the script name.
 
 The "build_from_folder" always executes after build from source, and will cause it to attempt to package up the contents of the ./python/darwin_x64/package folder (which was built using the script).
 
-## recommended package authoring workflow
+## Recommended package authoring workflow
 
  1. Create a sub-folder for your package, and name it (packagename-platform).  Do not use a version number in your package folder name, as updates to the package will be done in the same folder.
  2. Create your PackageInfo.json and FindPackage.cmake

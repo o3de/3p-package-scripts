@@ -1,12 +1,20 @@
 #
-# Copyright (c) Contributors to the Open 3D Engine Project
+# Copyright (c) Contributors to the Open 3D Engine Project. For complete copyright and license terms please see the LICENSE at the root of this distribution.
 # 
-#  SPDX-License-Identifier: Apache-2.0 OR MIT
+# SPDX-License-Identifier: Apache-2.0 OR MIT
 #
+#
+
 import boto3
 import argparse
 import sys
 import functools
+
+'''
+This script, given the names of 2 s3 buckets and optionally a profile to use to log in, will show what packages
+exist on each bucket, allowing you to find packages that are orphaned or are missing on production.
+The output is a table in markdown format.
+'''
 
 from common import CommonUtils
 from find_package_on_server import FindPackageUtils

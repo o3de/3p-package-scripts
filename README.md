@@ -21,7 +21,7 @@ On the **authoring** side, a package image (ready to pack) is valid as long as t
  - PackageInfo.json, which describes the package (and must be at the root folder of the package)
  - A license file (such as LICENSE.TXT) that contains the license information.  This file can be anywhere in the package.
 
-The PackageInfo "LicenseFile" field must point at the license file, relative to where the PackageInfo.json file is.  The PackageInfo 'PackageName' field uniquely identifies a package and is also a unique key for it in terms of uploading / downloading.  The "License field must be a SPDX license identifier or the word "Custom".
+The PackageInfo "LicenseFile" field must point at the license file, relative to where the PackageInfo.json file is.  The PackageInfo 'PackageName' field uniquely identifies a package and is also a unique key for it in terms of uploading / downloading.  The "License" field must be a [SPDX license](https://spdx.org/licenses/) identifier or the word "Custom".
 
 ```json
 {
@@ -35,7 +35,7 @@ Note that 'PackageName' is a full identifier of the package and must be unique a
 
 If the PackageInfo.json file is present and the fields are correct (there must also be an actual license file at the location that the PackageInfo.json specifies), then the package is a valid package and will function.
 
-However, even though just these two files make a valid package, the package would not serve any useful purpose.  All packages thus also contain their actual payload files (for example, a FindXXXX.CMake file as well as headers and libraries, executables, etc).
+However, even though just these two files make a valid package, the package would not serve any useful purpose.  All packages thus also contain their actual payload files (for example, a [FindXXXX.CMake file](https://cmake.org/cmake/help/latest/command/find_package.html#search-modes) as well as headers and libraries, executables, etc).
 
 An example package folder image on the *authoring* side could be:
 ``` 
@@ -111,7 +111,7 @@ The working directory for the build script to run will be the folder containing 
 When specifying a *multiplatform* package in a list file, pick **ONE** authoratative host platform to build the package on. For example, if a package contains Windows, Mac, and Linux binaries in it, add the package **ONCE** to either the Linux, Mac, or Windows host files.  By picking one host type for each package, you reduce the combinatorics involved in "What host produced the same package?" versus what it works on (We don't want to end up in a situation where what host a package was built on can cause subtle bugs even for the same logical package).
 
 ### Examples
-The standard repository contains a few notable examples you can copy from (in the actual package sources repo)
+The standard repository contains a few notable examples you can copy from (in the actual [package sources repo](https://github.com/o3de/3p-package-source))
  * The 'xxhash' library is an example of a library that is a header-only (small) library that fits committed directly and thus has no build script, just a package image
  * The 'OpenSSL' library is an example of using the package building system 'vcpkg' to do all the heavy lifting to generate the package image folder.
  * The 'Lua' library is an example of using a 'pull and build from git' script (shipped in that repo) to make it easy to pull, patch, and build from git repositories.

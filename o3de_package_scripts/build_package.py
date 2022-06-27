@@ -49,10 +49,15 @@ def BuildPackage(package_name, output_folder, search_path):
         if package_name not in folder_packages:
             print(f"Error: {package_name} specified in the source packages, but not the folder packages!")
             return 1
-            
+
+        # Put the package_name in an environment variable so that the build script
+        # can reference it if desired
+        subprocess_env = os.environ.copy()
+        subprocess_env["O3DE_PACKAGE_NAME"] = package_name
+
         print(f"Calling build script: \"{build_script_cmd}\"...")
         cmd = [sys.executable, '-s', build_script_path] + build_script_cmd.split(' ')[1:]
-        output = subprocess.run(cmd, cwd=build_script_folder)
+        output = subprocess.run(cmd, cwd=build_script_folder, env=subprocess_env)
         if output.returncode != 0:
             print(f"Package {package_name} failed to build from source.")
             return 1

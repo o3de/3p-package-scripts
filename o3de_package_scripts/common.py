@@ -72,7 +72,7 @@ class CommonUtils():
         # If the current platform is linux, add the architecture to the platform name as well
         if platsys == 'linux':
             if platform.machine() == 'aarch64':
-                return f'{platsys}-{platform.machine()}'
+                return f'{platsys}-arm64'
             # For x86_64 and others, default to the legacy 'linux' as the PAL platform name
             return platsys
 

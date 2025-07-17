@@ -75,6 +75,9 @@ class CommonUtils():
                 return f'{platsys}-{platform.machine()}'
             # For x86_64 and others, default to the legacy 'linux' as the PAL platform name
             return platsys
+        elif platsys == 'darwin':
+            if platform.machine() == 'arm64':
+                return f'{platsys}-{platform.machine()}'
 
         return platsys
 

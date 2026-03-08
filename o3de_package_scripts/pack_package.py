@@ -57,13 +57,13 @@ def PackageUpFolder(package_folder_path, output_folder):
 
     # create a manifest which has the hash and name of every file in the folder.
     # this includes the package info file.
-    path_to_scan = str(pathlib.Path(package_folder_path))
+    path_to_scan = pathlib.Path(package_folder_path)
     file_hashes = {} # map of 'relative path' -> sha256sum
     files_to_add = {} # map of 'absolute path' -> relative path from the package root
 
     # Note:  While it would be great to use pathlib.glob, it doesn't 'see' symlinks!
     # We have to use glob.glob instead, then wrap it in a pathlib.Path:
-    path_list = list(glob(f"{path_to_scan}/**/*", recursive=True))
+    path_list = list(path_to_scan.glob("**/*"))
     for path_str in path_list:
         individual_path = pathlib.Path(path_str)
         if not individual_path.is_dir():
